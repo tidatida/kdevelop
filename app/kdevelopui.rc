@@ -101,6 +101,7 @@
     <text context="@title:menu">&amp;Window</text>
     <Action name="new_window"/>
     <Separator/>
+    <Action name="new_tab"/>
     <Action name="add_toolview"/>
     <Action name="select_next_dock"/>
     <Action name="select_previous_dock"/>
