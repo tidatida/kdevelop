@@ -77,7 +77,7 @@ QString IncludeFileData::text() const
     return m_item.name;
 }
 
-bool IncludeFileData::execute( QString& filterText ) {
+bool IncludeFileData::execute( QString& filterText, Qt::KeyboardModifiers /*modifiers*/ ) {
   if( m_item.isDirectory ) {
     //Change the filter-text to match the sub-directory
     KUrl u( filterText );
