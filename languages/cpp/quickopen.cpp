@@ -77,7 +77,7 @@ QString IncludeFileData::text() const
     return m_item.name;
 }
 
-bool IncludeFileData::execute( QString& filterText, Qt::KeyboardModifiers /*modifiers*/ ) {
+bool IncludeFileData::execute( QString& filterText, Qt::KeyboardModifiers modifiers ) {
   if( m_item.isDirectory ) {
     //Change the filter-text to match the sub-directory
     KUrl u( filterText );
@@ -92,8 +92,12 @@ bool IncludeFileData::execute( QString& filterText, Qt::KeyboardModifiers /*modi
     return false;
   } else {
     KUrl u = m_item.url();
-    
-    ICore::self()->documentController()->openDocument( u );
+
+    IDocumentController::DocumentActivationParams activationParams(IDocumentController::DefaultMode);
+    if(modifiers.testFlag(Qt::ControlModifier)) {
+        activationParams = IDocumentController::DoNotReplaceCurrentView;
+    }
+    ICore::self()->documentController()->openDocument( u, KTextEditor::Range::invalid(), activationParams );
 
     return true;
   }
