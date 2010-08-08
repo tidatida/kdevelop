@@ -69,8 +69,14 @@ void VariableController::update()
         variableCollection()->watches()->reinstall();
     }
 
+// TODO: to make this optimization working (i.e. do not update locals/autos when the item is collapsed)
+// we need to update the node contents each time it gets expanded since values might be outdated
 //    if (autoUpdate() & UpdateLocals) {
         updateLocals();
+//    }
+
+//    if (autoUpdate() & UpdateAutos) {
+        variableCollection()->autos()->update();
 //    }
 
 //    if ((autoUpdate() & UpdateLocals) ||
@@ -159,16 +165,23 @@ void VariableController::updateLocals()
                         new StackListLocalsHandler(debugSession())));
 }
 
+
 QString VariableController::expressionUnderCursor(KTextEditor::Document* doc, const KTextEditor::Cursor& cursor)
 {
     QString line = doc->line(cursor.line());
     int index = cursor.column();
-    QChar c = line[index];
+
+    return expressionAtPosition(line, index);
+}
+
+QString VariableController::expressionAtPosition(const QString& line, int pos)
+{
+    QChar c = line[pos];
     if (!c.isLetterOrNumber() && c != '_')
         return QString();
 
-    int start = Utils::expressionAt(line, index+1);
-    int end = index;
+    int start = Utils::expressionAt(line, pos+1);
+    int end = pos;
     for (; end < line.size(); ++end)
     {
         QChar c = line[end];

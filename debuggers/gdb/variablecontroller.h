@@ -51,6 +51,7 @@ public:
                                      const QString& expression,
                                      const QString& display = "");
     virtual QString expressionUnderCursor(KTextEditor::Document* doc, const KTextEditor::Cursor& cursor);
+    virtual QString expressionAtPosition(const QString& line, int pos);
     virtual void addWatch(KDevelop::Variable* variable);
     virtual void addWatchpoint(KDevelop::Variable* variable);
     virtual void update();
