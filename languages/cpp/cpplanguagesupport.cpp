@@ -334,9 +334,9 @@ void CppLanguageSupport::switchDefinitionDeclaration()
       if(!document || 
           (document && document->textDocument() && document->textDocument()->activeView() && !targetRange.contains(document->textDocument()->activeView()->cursorPosition()))) {
         KTextEditor::Cursor pos(normalizeCursor(targetRange.start()));
-        core()->documentController()->openDocument(url, KTextEditor::Range(pos, pos));
+        core()->documentController()->openDocument(url, KTextEditor::Range(pos, pos), IDocumentController::DoNotReplaceCurrentView | IDocumentController::ReuseExistingView);
       }else if(document)
-        core()->documentController()->openDocument(url);
+        core()->documentController()->openDocument(url, KTextEditor::Range::invalid(), IDocumentController::DoNotReplaceCurrentView | IDocumentController::ReuseExistingView);
       return;
     }else{
       kDebug(9007) << "Definition has no assigned declaration";
@@ -368,10 +368,10 @@ void CppLanguageSupport::switchDefinitionDeclaration()
     if(!document || 
         (document && document->textDocument() && (!document->textDocument()->activeView() || !targetRange.contains(document->textDocument()->activeView()->cursorPosition())))) {
       KTextEditor::Cursor pos(normalizeCursor(targetRange.start()));
-      core()->documentController()->openDocument(url, KTextEditor::Range(pos, pos));
+      core()->documentController()->openDocument(url, KTextEditor::Range(pos, pos), IDocumentController::DoNotReplaceCurrentView | IDocumentController::ReuseExistingView);
     }else if(document) {
       //The cursor is already in the target range, only open the document
-      core()->documentController()->openDocument(url);
+      core()->documentController()->openDocument(url, KTextEditor::Range::invalid(), IDocumentController::DoNotReplaceCurrentView | IDocumentController::ReuseExistingView);
     }
     return;
   }else if (!wasSignal) {
@@ -382,7 +382,7 @@ void CppLanguageSupport::switchDefinitionDeclaration()
   ///- If no definition/declaration could be found to switch to, just switch the document using normal header/source heuristic by file-extension
 
   if(switchCandidate.isValid()) {
-    core()->documentController()->openDocument(switchCandidate);
+    core()->documentController()->openDocument(switchCandidate, KTextEditor::Range::invalid(), IDocumentController::DoNotReplaceCurrentView | IDocumentController::ReuseExistingView);
   }else{
     kDebug(9007) << "Found no source/header candidate to switch";
   }
