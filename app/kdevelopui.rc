@@ -1,5 +1,5 @@
 <!DOCTYPE kpartgui SYSTEM "kpartgui.dtd">
-<kpartgui version="131" name="kdevelop" >
+<kpartgui version="132" name="kdevelop" >
 <MenuBar>
 
   <Menu name="session" append="first_menu">
@@ -101,7 +101,6 @@
     <text context="@title:menu">&amp;Window</text>
     <Action name="new_window"/>
     <Separator/>
-    <Action name="new_tab"/>
     <Action name="add_toolview"/>
     <Action name="select_next_dock"/>
     <Action name="select_previous_dock"/>
