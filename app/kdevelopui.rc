@@ -174,4 +174,16 @@
   <Action name="file_closeother"/>
 </Menu>
 
+    
+<State name="no_view_active">
+    <disable>
+        <Action name="mark_sticky"/>
+    </disable>
+</State>
+<State name="view_active">
+    <enable>
+        <Action name="mark_sticky"/>
+    </enable>
+</State>
+
 </kpartgui>
