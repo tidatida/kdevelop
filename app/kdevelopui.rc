@@ -67,6 +67,7 @@
     <DefineGroup append="open_merge" name="open_merge"/>
     <DefineGroup append="save_merge" name="save_merge"/>
     <DefineGroup append="revert_merge" name="revert_merge"/>
+    <Action name="mark_sticky" />
     <DefineGroup append="print_merge" name="print_merge"/>
     <Action name="file_closeother" append="close_merge"/>
     <DefineGroup append="close_merge" name="close_merge"/>
@@ -79,8 +80,6 @@
     <DefineGroup append="edit_select_merge" name="edit_select_merge"/>
     <DefineGroup append="edit_find_merge" name="edit_find_merge"/>
     <DefineGroup name="edit_formatting"/>
-    <Separator/>
-    <Action name="view_sticky" />
     <Separator/>
     <Merge/>
   </Menu>
