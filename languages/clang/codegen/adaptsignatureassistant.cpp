@@ -161,7 +161,7 @@ void AdaptSignatureAssistant::textChanged(KTextEditor::Document* doc, const KTex
 
 bool AdaptSignatureAssistant::isUseful() const
 {
-    return !m_declarationName.isEmpty() && m_otherSideId.isValid();
+    return !m_declarationName.isEmpty() && m_otherSideId.isValid() && !actions().isEmpty();
 }
 
 bool AdaptSignatureAssistant::getSignatureChanges(const Signature& newSignature, QList<int>& oldPositions) const
