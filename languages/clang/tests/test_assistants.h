@@ -29,13 +29,13 @@ private slots:
     void initTestCase();
     void cleanupTestCase();
 
-    void testRenameAssistant_data();
-    void testRenameAssistant();
-    void testRenameAssistantUndoRename();
-    void testSignatureAssistant_data();
-    void testSignatureAssistant();
-    void testUnknownDeclarationAssistant_data();
-    void testUnknownDeclarationAssistant();
+//     void testRenameAssistant_data();
+//     void testRenameAssistant();
+//     void testRenameAssistantUndoRename();
+//     void testSignatureAssistant_data();
+//     void testSignatureAssistant();
+//     void testUnknownDeclarationAssistant_data();
+//     void testUnknownDeclarationAssistant();
 
     void testMoveIntoSource_data();
     void testMoveIntoSource();

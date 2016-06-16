@@ -98,21 +98,21 @@ void AdaptSignatureAssistant::reset()
     m_otherSideTopContext = {};
     m_otherSideContext = {};
     m_oldSignature = {};
-    m_document = {};
+    m_document = nullptr;
     m_view.clear();
 }
 
-void AdaptSignatureAssistant::textChanged(KTextEditor::View* view, const KTextEditor::Range& invocationRange, const QString& removedText)
+void AdaptSignatureAssistant::textChanged(KTextEditor::Document* doc, const KTextEditor::Range& invocationRange, const QString& removedText)
 {
     reset();
 
-    m_view = view;
+    m_document = doc;
+    m_lastEditPosition = invocationRange.end();
 
     KTextEditor::Range sigAssistRange = invocationRange;
     if (!removedText.isEmpty()) {
         sigAssistRange.setRange(sigAssistRange.start(), sigAssistRange.start());
     }
-    m_document = view->document()->url();
 
     DUChainReadLocker lock(DUChain::lock(), 300);
     if (!lock.locked()) {
@@ -120,7 +120,7 @@ void AdaptSignatureAssistant::textChanged(KTextEditor::View* view, const KTextEd
         return;
     }
     KTextEditor::Range simpleInvocationRange = KTextEditor::Range(sigAssistRange);
-    Declaration* funDecl = getDeclarationAtCursor(simpleInvocationRange.start(), m_document);
+    Declaration* funDecl = getDeclarationAtCursor(simpleInvocationRange.start(), m_document->url());
     if (!funDecl || !funDecl->type<FunctionType>()) {
         return;
     }
@@ -253,16 +253,16 @@ QList<RenameAction*> AdaptSignatureAssistant::getRenameActions(const Signature &
 
 void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& /*context*/)
 {
-    if (document.toUrl() != m_document || !m_view) {
+    if (!m_document || document.toUrl() != m_document->url()) {
         return;
     }
     clearActions();
 
     DUChainReadLocker lock;
 
-    Declaration *functionDecl = getDeclarationAtCursor(KTextEditor::Cursor(m_view.data()->cursorPosition()), m_document);
+    Declaration *functionDecl = getDeclarationAtCursor(m_lastEditPosition, m_document->url());
     if (!functionDecl || functionDecl->identifier() != m_declarationName) {
-        clangDebug() << "No function found at" << m_document << m_view.data()->cursorPosition();
+        clangDebug() << "No function found at" << m_document->url() << m_lastEditPosition;
         return;
     }
     DUContext *functionCtxt = DUChainUtils::getFunctionContext(functionDecl);
@@ -301,6 +301,13 @@ void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& documen
             this, &AdaptSignatureAssistant::reset);
     addAction(action);
     emit actionsChanged();
+}
+
+KTextEditor::Range AdaptSignatureAssistant::displayRange() const {
+    auto s = m_lastEditPosition;
+    KTextEditor::Range ran = {s.line(), 0, s.line(), m_document->lineLength(s.line())};
+    qDebug() << "display range:" << ran;
+    return ran;
 }
 
 #include "moc_adaptsignatureassistant.cpp"

@@ -42,8 +42,9 @@ public:
     AdaptSignatureAssistant(KDevelop::ILanguageSupport* supportedLanguage);
 
     QString title() const override;
-    void textChanged(KTextEditor::View* view, const KTextEditor::Range& invocationRange, const QString& removedText = QString()) override;
+    void textChanged(KTextEditor::Document* doc, const KTextEditor::Range& invocationRange, const QString& removedText = QString()) override;
     bool isUseful() const override;
+    KTextEditor::Range displayRange() const override;
 
 private:
     ///Compare @param newSignature to m_oldSignature and put differences in oldPositions
@@ -61,9 +62,10 @@ private:
     KDevelop::DeclarationId m_otherSideId;
     KDevelop::ReferencedTopDUContext m_otherSideTopContext;
     KDevelop::DUContextPointer m_otherSideContext;
+    KTextEditor::Cursor m_lastEditPosition;
     //old signature of the _other_side
     Signature m_oldSignature;
-    QUrl m_document;
+    KTextEditor::Document* m_document;
     QPointer<KTextEditor::View> m_view;
 
 private slots:

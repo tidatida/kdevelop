@@ -131,7 +131,7 @@ public:
         Core::self()->documentController()->documentForUrl(m_cppDocument.url)->close(KDevelop::IDocument::Discard);
         Core::self()->documentController()->documentForUrl(m_headerDocument.url)->close(KDevelop::IDocument::Discard);
 
-        staticAssistantsManager()->hideAssistant();
+//         staticAssistantsManager()->hideAssistant();
     }
 
     void changeDocument(TestDoc which, Range where, const QString& what, bool waitForUpdate = false)
@@ -229,7 +229,7 @@ struct StateChange
 Q_DECLARE_METATYPE(StateChange)
 Q_DECLARE_METATYPE(QList<StateChange>)
 
-
+/*
 void TestAssistants::testRenameAssistant_data()
 {
     QTest::addColumn<QString>("fileContents");
@@ -291,186 +291,186 @@ void TestAssistants::testRenameAssistant_data()
             << StateChange(Testbed::CppDoc, Range(0,17,0,17), "f", "abcdefg")
         )
         << "int foo(int abcdefg)\n { abcdefg = 0; return abcdefg; }";
-}
+}*/
 
-void TestAssistants::testRenameAssistant()
-{
-    QFETCH(QString, fileContents);
-    Testbed testbed("", fileContents);
-
-    QFETCH(QString, oldDeclarationName);
-    QFETCH(QList<StateChange>, stateChanges);
-    foreach(StateChange stateChange, stateChanges)
-    {
-        testbed.changeDocument(Testbed::CppDoc, stateChange.range, stateChange.newText);
-        if (stateChange.result.isEmpty()) {
-            QVERIFY(!staticAssistantsManager()->activeAssistant() || !staticAssistantsManager()->activeAssistant()->actions().size());
-        } else {
-            QVERIFY(staticAssistantsManager()->activeAssistant() && staticAssistantsManager()->activeAssistant()->actions().size());
-            RenameAction *r = qobject_cast<RenameAction*>(staticAssistantsManager()->activeAssistant()->actions().first().data());
-            QCOMPARE(r->oldDeclarationName(), oldDeclarationName);
-            QCOMPARE(r->newDeclarationName(), stateChange.result);
-        }
-    }
-    if (staticAssistantsManager()->activeAssistant() && staticAssistantsManager()->activeAssistant()->actions().size()) {
-            staticAssistantsManager()->activeAssistant()->actions().first()->execute();
-    }
-    QFETCH(QString, finalFileContents);
-    QCOMPARE(testbed.documentText(Testbed::CppDoc), finalFileContents);
-}
-
-void TestAssistants::testRenameAssistantUndoRename()
-{
-    Testbed testbed("", "int foo(int i)\n { i = 0; return i; }");
-    testbed.changeDocument(Testbed::CppDoc, Range(0,13,0,13), "d");
-    QVERIFY(staticAssistantsManager()->activeAssistant());
-    QVERIFY(staticAssistantsManager()->activeAssistant()->actions().size() > 0);
-    RenameAction *r = qobject_cast<RenameAction*>(staticAssistantsManager()->activeAssistant()->actions().first().data());
-    QVERIFY(r);
-
-    // now rename the variable back to its original identifier
-    testbed.changeDocument(Testbed::CppDoc, Range(0,13,0,14), "");
-    // there should be no assistant anymore
-    QVERIFY(!staticAssistantsManager()->activeAssistant());
-}
+// void TestAssistants::testRenameAssistant()
+// {
+//     QFETCH(QString, fileContents);
+//     Testbed testbed("", fileContents);
+//
+//     QFETCH(QString, oldDeclarationName);
+//     QFETCH(QList<StateChange>, stateChanges);
+//     foreach(StateChange stateChange, stateChanges)
+//     {
+//         testbed.changeDocument(Testbed::CppDoc, stateChange.range, stateChange.newText);
+//         if (stateChange.result.isEmpty()) {
+//             QVERIFY(!staticAssistantsManager()->activeAssistant() || !staticAssistantsManager()->activeAssistant()->actions().size());
+//         } else {
+//             QVERIFY(staticAssistantsManager()->activeAssistant() && staticAssistantsManager()->activeAssistant()->actions().size());
+//             RenameAction *r = qobject_cast<RenameAction*>(staticAssistantsManager()->activeAssistant()->actions().first().data());
+//             QCOMPARE(r->oldDeclarationName(), oldDeclarationName);
+//             QCOMPARE(r->newDeclarationName(), stateChange.result);
+//         }
+//     }
+//     if (staticAssistantsManager()->activeAssistant() && staticAssistantsManager()->activeAssistant()->actions().size()) {
+//             staticAssistantsManager()->activeAssistant()->actions().first()->execute();
+//     }
+//     QFETCH(QString, finalFileContents);
+//     QCOMPARE(testbed.documentText(Testbed::CppDoc), finalFileContents);
+// }
+//
+// void TestAssistants::testRenameAssistantUndoRename()
+// {
+//     Testbed testbed("", "int foo(int i)\n { i = 0; return i; }");
+//     testbed.changeDocument(Testbed::CppDoc, Range(0,13,0,13), "d");
+//     QVERIFY(staticAssistantsManager()->activeAssistant());
+//     QVERIFY(staticAssistantsManager()->activeAssistant()->actions().size() > 0);
+//     RenameAction *r = qobject_cast<RenameAction*>(staticAssistantsManager()->activeAssistant()->actions().first().data());
+//     QVERIFY(r);
+//
+//     // now rename the variable back to its original identifier
+//     testbed.changeDocument(Testbed::CppDoc, Range(0,13,0,14), "");
+//     // there should be no assistant anymore
+//     QVERIFY(!staticAssistantsManager()->activeAssistant());
+// }
 
 const QString SHOULD_ASSIST = "SHOULD_ASSIST"; //An assistant will be visible
 const QString NO_ASSIST = "NO_ASSIST";               //No assistant visible
 
-void TestAssistants::testSignatureAssistant_data()
-{
-    QTest::addColumn<QString>("headerContents");
-    QTest::addColumn<QString>("cppContents");
-    QTest::addColumn<QList<StateChange> >("stateChanges");
-    QTest::addColumn<QString>("finalHeaderContents");
-    QTest::addColumn<QString>("finalCppContents");
-
-    QTest::newRow("change_argument_type")
-      << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
-      << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
-      << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(1,8,1,11), "char", SHOULD_ASSIST))
-      << "class Foo {\nint bar(char a, char* b, int c = 10); \n};"
-      << "int Foo::bar(char a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
-
-    QTest::newRow("prepend_arg_header")
-      << "class Foo { void bar(int i); };"
-      << "void Foo::bar(int i)\n{}"
-      << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 21, 0, 21), "char c, ", SHOULD_ASSIST))
-      << "class Foo { void bar(char c, int i); };"
-      << "void Foo::bar(char c, int i)\n{}";
-
-    QTest::newRow("prepend_arg_cpp")
-      << "class Foo { void bar(int i); };"
-      << "void Foo::bar(int i)\n{}"
-      << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 14, 0, 14), "char c, ", SHOULD_ASSIST))
-      << "class Foo { void bar(char c, int i); };"
-      << "void Foo::bar(char c, int i)\n{}";
-
-    QTest::newRow("change_default_parameter")
-        << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
-        << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
-        << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(1,29,1,34), "", NO_ASSIST))
-        << "class Foo {\nint bar(int a, char* b, int c); \n};"
-        << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
-
-    QTest::newRow("change_function_type")
-        << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
-        << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,0,0,3), "char", SHOULD_ASSIST))
-        << "class Foo {\nchar bar(int a, char* b, int c = 10); \n};"
-        << "char Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
-
-    QTest::newRow("swap_args_definition_side")
-        << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
-        << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,13,0,28), "char* b, int a,", SHOULD_ASSIST))
-        << "class Foo {\nint bar(char* b, int a, int c = 10); \n};"
-        << "int Foo::bar(char* b, int a, int c)\n{ a = c; b = new char; return a + *b; }";
+// void TestAssistants::testSignatureAssistant_data()
+// {
+//     QTest::addColumn<QString>("headerContents");
+//     QTest::addColumn<QString>("cppContents");
+//     QTest::addColumn<QList<StateChange> >("stateChanges");
+//     QTest::addColumn<QString>("finalHeaderContents");
+//     QTest::addColumn<QString>("finalCppContents");
+//
+//     QTest::newRow("change_argument_type")
+//       << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
+//       << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
+//       << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(1,8,1,11), "char", SHOULD_ASSIST))
+//       << "class Foo {\nint bar(char a, char* b, int c = 10); \n};"
+//       << "int Foo::bar(char a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
+//
+//     QTest::newRow("prepend_arg_header")
+//       << "class Foo { void bar(int i); };"
+//       << "void Foo::bar(int i)\n{}"
+//       << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 21, 0, 21), "char c, ", SHOULD_ASSIST))
+//       << "class Foo { void bar(char c, int i); };"
+//       << "void Foo::bar(char c, int i)\n{}";
+//
+//     QTest::newRow("prepend_arg_cpp")
+//       << "class Foo { void bar(int i); };"
+//       << "void Foo::bar(int i)\n{}"
+//       << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 14, 0, 14), "char c, ", SHOULD_ASSIST))
+//       << "class Foo { void bar(char c, int i); };"
+//       << "void Foo::bar(char c, int i)\n{}";
+//
+//     QTest::newRow("change_default_parameter")
+//         << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
+//         << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
+//         << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(1,29,1,34), "", NO_ASSIST))
+//         << "class Foo {\nint bar(int a, char* b, int c); \n};"
+//         << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
+//
+//     QTest::newRow("change_function_type")
+//         << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
+//         << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,0,0,3), "char", SHOULD_ASSIST))
+//         << "class Foo {\nchar bar(int a, char* b, int c = 10); \n};"
+//         << "char Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }";
+//
+//     QTest::newRow("swap_args_definition_side")
+//         << "class Foo {\nint bar(int a, char* b, int c = 10); \n};"
+//         << "int Foo::bar(int a, char* b, int c)\n{ a = c; b = new char; return a + *b; }"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,13,0,28), "char* b, int a,", SHOULD_ASSIST))
+//         << "class Foo {\nint bar(char* b, int a, int c = 10); \n};"
+//         << "int Foo::bar(char* b, int a, int c)\n{ a = c; b = new char; return a + *b; }";
 
     // see https://bugs.kde.org/show_bug.cgi?id=299393
     // actually related to the whitespaces in the header...
-    QTest::newRow("change_function_constness")
-        << "class Foo {\nvoid bar(const Foo&) const;\n};"
-        << "void Foo::bar(const Foo&) const\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,25,0,31), "", SHOULD_ASSIST))
-        << "class Foo {\nvoid bar(const Foo&);\n};"
-        << "void Foo::bar(const Foo&)\n{}";
-
-    // see https://bugs.kde.org/show_bug.cgi?id=356179
-    QTest::newRow("keep_static_cpp")
-        << "class Foo { static void bar(int i); };"
-        << "void Foo::bar(int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 19, 0, 19), ", char c", SHOULD_ASSIST))
-        << "class Foo { static void bar(int i, char c); };"
-        << "void Foo::bar(int i, char c)\n{}";
-    QTest::newRow("keep_static_header")
-        << "class Foo { static void bar(int i); };"
-        << "void Foo::bar(int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 33, 0, 33), ", char c", SHOULD_ASSIST))
-        << "class Foo { static void bar(int i, char c); };"
-        << "void Foo::bar(int i, char c)\n{}";
+//     QTest::newRow("change_function_constness")
+//         << "class Foo {\nvoid bar(const Foo&) const;\n};"
+//         << "void Foo::bar(const Foo&) const\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,25,0,31), "", SHOULD_ASSIST))
+//         << "class Foo {\nvoid bar(const Foo&);\n};"
+//         << "void Foo::bar(const Foo&)\n{}";
+//
+//     // see https://bugs.kde.org/show_bug.cgi?id=356179
+//     QTest::newRow("keep_static_cpp")
+//         << "class Foo { static void bar(int i); };"
+//         << "void Foo::bar(int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 19, 0, 19), ", char c", SHOULD_ASSIST))
+//         << "class Foo { static void bar(int i, char c); };"
+//         << "void Foo::bar(int i, char c)\n{}";
+//     QTest::newRow("keep_static_header")
+//         << "class Foo { static void bar(int i); };"
+//         << "void Foo::bar(int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 33, 0, 33), ", char c", SHOULD_ASSIST))
+//         << "class Foo { static void bar(int i, char c); };"
+//         << "void Foo::bar(int i, char c)\n{}";
 
     // see https://bugs.kde.org/show_bug.cgi?id=356178
-    QTest::newRow("keep_default_args_cpp_before")
-        << "class Foo { void bar(bool b, int i = 0); };"
-        << "void Foo::bar(bool b, int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 14, 0, 14), "char c, ", SHOULD_ASSIST))
-        << "class Foo { void bar(char c, bool b, int i = 0); };"
-        << "void Foo::bar(char c, bool b, int i)\n{}";
-    QTest::newRow("keep_default_args_cpp_after")
-        << "class Foo { void bar(bool b, int i = 0); };"
-        << "void Foo::bar(bool b, int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 27, 0, 27), ", char c", SHOULD_ASSIST))
-        << "class Foo { void bar(bool b, int i = 0, char c = {} /* TODO */); };"
-        << "void Foo::bar(bool b, int i, char c)\n{}";
-    QTest::newRow("keep_default_args_header_before")
-        << "class Foo { void bar(bool b, int i = 0); };"
-        << "void Foo::bar(bool b, int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 29, 0, 29), "char c = 'A', ", SHOULD_ASSIST))
-        << "class Foo { void bar(bool b, char c = 'A', int i = 0); };"
-        << "void Foo::bar(bool b, char c, int i)\n{}";
-    QTest::newRow("keep_default_args_header_after")
-        << "class Foo { void bar(bool b, int i = 0); };"
-        << "void Foo::bar(bool b, int i)\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 38, 0, 38), ", char c = 'A'", SHOULD_ASSIST))
-        << "class Foo { void bar(bool b, int i = 0, char c = 'A'); };"
-        << "void Foo::bar(bool b, int i, char c)\n{}";
+//     QTest::newRow("keep_default_args_cpp_before")
+//         << "class Foo { void bar(bool b, int i = 0); };"
+//         << "void Foo::bar(bool b, int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 14, 0, 14), "char c, ", SHOULD_ASSIST))
+//         << "class Foo { void bar(char c, bool b, int i = 0); };"
+//         << "void Foo::bar(char c, bool b, int i)\n{}";
+//     QTest::newRow("keep_default_args_cpp_after")
+//         << "class Foo { void bar(bool b, int i = 0); };"
+//         << "void Foo::bar(bool b, int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0, 27, 0, 27), ", char c", SHOULD_ASSIST))
+//         << "class Foo { void bar(bool b, int i = 0, char c = {} /* TODO */); };"
+//         << "void Foo::bar(bool b, int i, char c)\n{}";
+//     QTest::newRow("keep_default_args_header_before")
+//         << "class Foo { void bar(bool b, int i = 0); };"
+//         << "void Foo::bar(bool b, int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 29, 0, 29), "char c = 'A', ", SHOULD_ASSIST))
+//         << "class Foo { void bar(bool b, char c = 'A', int i = 0); };"
+//         << "void Foo::bar(bool b, char c, int i)\n{}";
+//     QTest::newRow("keep_default_args_header_after")
+//         << "class Foo { void bar(bool b, int i = 0); };"
+//         << "void Foo::bar(bool b, int i)\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 38, 0, 38), ", char c = 'A'", SHOULD_ASSIST))
+//         << "class Foo { void bar(bool b, int i = 0, char c = 'A'); };"
+//         << "void Foo::bar(bool b, int i, char c)\n{}";
 
     // see https://bugs.kde.org/show_bug.cgi?id=355356
-    QTest::newRow("no_retval_on_ctor")
-        << "class Foo { Foo(); };"
-        << "Foo::Foo()\n{}"
-        << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 16, 0, 16), "char c", SHOULD_ASSIST))
-        << "class Foo { Foo(char c); };"
-        << "Foo::Foo(char c)\n{}";
-}
+//     QTest::newRow("no_retval_on_ctor")
+//         << "class Foo { Foo(); };"
+//         << "Foo::Foo()\n{}"
+//         << (QList<StateChange>() << StateChange(Testbed::HeaderDoc, Range(0, 16, 0, 16), "char c", SHOULD_ASSIST))
+//         << "class Foo { Foo(char c); };"
+//         << "Foo::Foo(char c)\n{}";
+// }
 
-void TestAssistants::testSignatureAssistant()
-{
-    QFETCH(QString, headerContents);
-    QFETCH(QString, cppContents);
-    Testbed testbed(headerContents, cppContents);
-
-    QFETCH(QList<StateChange>, stateChanges);
-    foreach (StateChange stateChange, stateChanges)
-    {
-        testbed.changeDocument(stateChange.document, stateChange.range, stateChange.newText, true);
-
-        if (stateChange.result == SHOULD_ASSIST) {
-            QEXPECT_FAIL("change_function_type", "Clang sees that return type of out-of-line definition differs from that in the declaration and won't parse the code...", Abort);
-            QVERIFY(staticAssistantsManager()->activeAssistant() && !staticAssistantsManager()->activeAssistant()->actions().isEmpty());
-        } else {
-            QVERIFY(!staticAssistantsManager()->activeAssistant() || staticAssistantsManager()->activeAssistant()->actions().isEmpty());
-        }
-    }
-    if (staticAssistantsManager()->activeAssistant() && !staticAssistantsManager()->activeAssistant()->actions().isEmpty())
-        staticAssistantsManager()->activeAssistant()->actions().first()->execute();
-
-    QFETCH(QString, finalHeaderContents);
-    QFETCH(QString, finalCppContents);
-    QCOMPARE(testbed.documentText(Testbed::HeaderDoc), finalHeaderContents);
-    QCOMPARE(testbed.documentText(Testbed::CppDoc), finalCppContents);
-}
+// void TestAssistants::testSignatureAssistant()
+// {
+//     QFETCH(QString, headerContents);
+//     QFETCH(QString, cppContents);
+//     Testbed testbed(headerContents, cppContents);
+//
+//     QFETCH(QList<StateChange>, stateChanges);
+//     foreach (StateChange stateChange, stateChanges)
+//     {
+//         testbed.changeDocument(stateChange.document, stateChange.range, stateChange.newText, true);
+//
+//         if (stateChange.result == SHOULD_ASSIST) {
+//             QEXPECT_FAIL("change_function_type", "Clang sees that return type of out-of-line definition differs from that in the declaration and won't parse the code...", Abort);
+//             QVERIFY(staticAssistantsManager()->activeAssistant() && !staticAssistantsManager()->activeAssistant()->actions().isEmpty());
+//         } else {
+//             QVERIFY(!staticAssistantsManager()->activeAssistant() || staticAssistantsManager()->activeAssistant()->actions().isEmpty());
+//         }
+//     }
+//     if (staticAssistantsManager()->activeAssistant() && !staticAssistantsManager()->activeAssistant()->actions().isEmpty())
+//         staticAssistantsManager()->activeAssistant()->actions().first()->execute();
+//
+//     QFETCH(QString, finalHeaderContents);
+//     QFETCH(QString, finalCppContents);
+//     QCOMPARE(testbed.documentText(Testbed::HeaderDoc), finalHeaderContents);
+//     QCOMPARE(testbed.documentText(Testbed::CppDoc), finalCppContents);
+// }
 
 enum UnknownDeclarationActions
 {
@@ -480,7 +480,7 @@ enum UnknownDeclarationActions
 };
 
 Q_DECLARE_METATYPE(UnknownDeclarationActions)
-
+/*
 void TestAssistants::testUnknownDeclarationAssistant_data()
 {
     QTest::addColumn<QString>("headerContents");
@@ -535,7 +535,7 @@ void TestAssistants::testUnknownDeclarationAssistant()
         const bool hasMissingInclude = actionDescriptions.contains(description);
         QCOMPARE(hasMissingInclude, static_cast<bool>(actions & MissingInclude));
     }
-}
+}*/
 
 void TestAssistants::testMoveIntoSource()
 {
