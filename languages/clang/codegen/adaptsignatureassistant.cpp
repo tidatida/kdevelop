@@ -78,8 +78,6 @@ Signature getDeclarationSignature(const Declaration *functionDecl, const DUConte
 AdaptSignatureAssistant::AdaptSignatureAssistant(ILanguageSupport* supportedLanguage)
     : StaticAssistant(supportedLanguage)
 {
-    connect(DUChain::self(), &DUChain::updateReady,
-            this, &AdaptSignatureAssistant::updateReady);
 }
 
 QString AdaptSignatureAssistant::title() const
@@ -251,9 +249,12 @@ QList<RenameAction*> AdaptSignatureAssistant::getRenameActions(const Signature &
     return renameActions;
 }
 
-void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& /*context*/)
+void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& top)
 {
-    if (!m_document || document.toUrl() != m_document->url()) {
+    if ( m_document ) {
+        qDebug() << "update ready:" << top->url().toUrl() << m_document->url();
+    }
+    if (!m_document || document.toUrl() != m_document->url() || top->url() != IndexedString(m_document->url())) {
         return;
     }
     clearActions();

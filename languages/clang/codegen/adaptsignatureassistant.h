@@ -69,7 +69,7 @@ private:
     QPointer<KTextEditor::View> m_view;
 
 private slots:
-    void updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& context);
+    void updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& context) override;
     void reset();
 };
 
