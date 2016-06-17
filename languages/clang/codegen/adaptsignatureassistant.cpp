@@ -255,10 +255,7 @@ QList<RenameAction*> AdaptSignatureAssistant::getRenameActions(const Signature &
 
 void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& document, const KDevelop::ReferencedTopDUContext& top)
 {
-    if ( m_document ) {
-        qDebug() << "update ready:" << top->url().toUrl() << m_document->url();
-    }
-    if (!m_document || document.toUrl() != m_document->url() || top->url() != IndexedString(m_document->url())) {
+    if (!top || !m_document || document.toUrl() != m_document->url() || top->url() != IndexedString(m_document->url())) {
         return;
     }
     clearActions();

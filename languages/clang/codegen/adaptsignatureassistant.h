@@ -65,7 +65,7 @@ private:
     KTextEditor::Cursor m_lastEditPosition;
     //old signature of the _other_side
     Signature m_oldSignature;
-    KTextEditor::Document* m_document;
+    KTextEditor::Document* m_document = nullptr;
     QPointer<KTextEditor::View> m_view;
 
 private slots:
