@@ -120,6 +120,7 @@ void AdaptSignatureAssistant::textChanged(KTextEditor::Document* doc, const KTex
     KTextEditor::Range simpleInvocationRange = KTextEditor::Range(sigAssistRange);
     Declaration* funDecl = getDeclarationAtCursor(simpleInvocationRange.start(), m_document->url());
     if (!funDecl || !funDecl->type<FunctionType>()) {
+        clangDebug() << "No function at cursor";
         return;
     }
     /*
@@ -142,10 +143,12 @@ void AdaptSignatureAssistant::textChanged(KTextEditor::Document* doc, const KTex
         otherSide = definition;
     }
     if (!otherSide) {
+        clangDebug() << "no other side for signature found";
         return;
     }
     m_otherSideContext = DUContextPointer(DUChainUtils::getFunctionContext(otherSide));
     if (!m_otherSideContext) {
+        clangDebug() << "no context for other side found";
         return;
     }
     m_declarationName = funDecl->identifier();
@@ -229,6 +232,7 @@ QList<RenameAction*> AdaptSignatureAssistant::getRenameActions(const Signature &
 {
     Q_ASSERT(DUChain::lock()->currentThreadHasReadLock());
     QList<RenameAction*> renameActions;
+    qDebug() << "called" << oldPositions << m_otherSideContext;
     if (!m_otherSideContext) {
         return renameActions;
     }
@@ -287,6 +291,7 @@ void AdaptSignatureAssistant::updateReady(const KDevelop::IndexedString& documen
     QList<int> oldPositions;
     if (!getSignatureChanges(newSignature, oldPositions)) {
         reset();
+        clangDebug() << "no changes to signature";
         return; //No changes to signature
     }
     QList<RenameAction*> renameActions;

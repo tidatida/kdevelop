@@ -44,6 +44,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QProcess>
+#include <QResource>
 #include <QSessionManager>
 #include <QTextStream>
 #include <QDBusInterface>
@@ -73,8 +74,6 @@ Q_LOGGING_CATEGORY(APP, "kdevelop.app")
 #endif
 
 #include <iostream>
-
-#include "splash.h"
 
 #ifdef Q_OS_MAC
 #include <CoreFoundation/CoreFoundation.h>
@@ -240,6 +239,18 @@ static QString findSessionId(const QString& session)
     return projectAsSession;
 }
 
+static void tryLoadIconResources()
+{
+    const QString breezeIcons = QStandardPaths::locate(QStandardPaths::DataLocation, QStringLiteral("icons/breeze/breeze-icons.rcc"));
+    if (!breezeIcons.isEmpty() && QFile::exists(breezeIcons)) {
+        qCDebug(APP) << "Loading icons rcc:" << breezeIcons;
+
+        // prepend /icons to the root to comply with KIcon* machinery
+        QResource::registerResource(breezeIcons, QStringLiteral("/icons/breeze"));
+        QIcon::setThemeSearchPaths(QStringList() << QStringLiteral(":/icons"));
+    }
+}
+
 static qint64 findSessionPid(const QString &sessionId)
 {
     KDevelop::SessionRunInfo sessionInfo = KDevelop::SessionController::sessionRunInfo( sessionId );
@@ -258,7 +269,6 @@ int main( int argc, char *argv[] )
 
     // Useful for valgrind runs, just `export KDEV_DISABLE_JIT=1`
     if (qEnvironmentVariableIsSet("KDEV_DISABLE_JIT")) {
-        qputenv("KDEV_DISABLE_SPLASH", "1");
         qputenv("KDEV_DISABLE_WELCOMEPAGE", "1");
         qputenv("QT_ENABLE_REGEXP_JIT", "0");
     }
@@ -378,6 +388,8 @@ int main( int argc, char *argv[] )
     KDevelopApplication app(argc, argv);
 
     KCrash::initialize();
+
+    tryLoadIconResources();
 
     Kdelibs4ConfigMigrator migrator(QStringLiteral("kdevelop"));
     migrator.setConfigFiles({QStringLiteral("kdeveloprc")});
@@ -597,13 +609,7 @@ int main( int argc, char *argv[] )
 
     KDevIDEExtension::init();
 
-    KDevSplashScreen* splash = nullptr;
-    if (!QProcessEnvironment::systemEnvironment().contains("KDEV_DISABLE_SPLASH")) {
-        splash = new KDevSplashScreen;
-        splash->show();
-    }
-
-    if(!Core::initialize(splash, Core::Default, session))
+    if(!Core::initialize(nullptr, Core::Default, session))
         return 5;
 
     // register a DBUS service for this process, so that we can open files in it from other invocations

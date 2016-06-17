@@ -25,13 +25,14 @@
 #include "cmake-test-paths.h"
 #include "../debug.h"
 
-#include <KProcess>
+#include <QProcess>
 #include <QFile>
 
 #include <cmakeparserutils.h>
 #include <language/duchain/duchain.h>
 #include <tests/autotestshell.h>
 #include <tests/testcore.h>
+#include <util/environmentgrouplist.h>
 #include <cmakeprojectdata.h>
 
 using namespace KDevelop;
@@ -43,8 +44,9 @@ QString CMakeCompliance::output;
 //Copied from CMakeManager
 QString executeProcess(const QString& execName, const QStringList& args=QStringList())
 {
-    KProcess p;
-    p.setOutputChannelMode(KProcess::MergedChannels);
+    QProcess p;
+    KDevelop::restoreSystemEnvironment(&p);
+    p.setProcessChannelMode(QProcess::MergedChannels);
     p.setProgram(execName, args);
     p.start();
 

@@ -35,7 +35,7 @@ include(KDECompilerSettings NO_POLICY_SCOPE)
 
 set(QT_MIN_VERSION "5.4.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED Widgets Concurrent Quick QuickWidgets WebKitWidgets Script Test)
-set(KF5_DEP_VERSION "5.4.0") # we need https://git.reviewboard.kde.org/r/120099/
+set(KF5_DEP_VERSION "5.15.0") # we need KCrash::initialize
 find_package(KF5 ${KF5_DEP_VERSION} REQUIRED COMPONENTS
   Config
   Declarative
@@ -135,6 +135,6 @@ install(EXPORT KDevelopTargets DESTINATION "${CMAKECONFIG_INSTALL_DIR}" NAMESPAC
 # in the KDE build system, this is the same as CMAKE_BINARY_DIR.
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 
-install(FILES kdevelop.appdata.xml DESTINATION ${SHARE_INSTALL_PREFIX}/appdata/)
+install(FILES org.kde.kdevelop.appdata.xml DESTINATION ${SHARE_INSTALL_PREFIX}/appdata/)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

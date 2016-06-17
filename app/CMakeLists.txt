@@ -18,7 +18,7 @@ else()
     set(singleapp_SRCS ${singleapp_SRCS} qtlockedfile_unix.cpp)
 endif()
 
-set(kdevelop_SRCS  main.cpp kdevideextension.cpp splash.cpp)
+set(kdevelop_SRCS  main.cpp kdevideextension.cpp)
 if(KDEVELOP_SINGLE_APP)
     set(kdevelop_SRCS ${kdevelop_SRCS} ${singleapp_SRCS})
 endif()
@@ -50,8 +50,6 @@ target_link_libraries(kdevelop
     KF5::Declarative
     KF5::IconThemes
     KF5::Crash
-
-    Qt5::Quick
 )
 IF(APPLE)
     target_link_libraries(kdevelop "-framework CoreFoundation")
@@ -87,8 +85,8 @@ endif (APPLE)
 
 ########### install files ###############
 
-install( PROGRAMS kdevelop.desktop  DESTINATION  ${KDE_INSTALL_APPDIR} )
-install( PROGRAMS kdevelop_ps.desktop  DESTINATION  ${KDE_INSTALL_APPDIR} )
+install( PROGRAMS org.kde.kdevelop.desktop  DESTINATION  ${KDE_INSTALL_APPDIR} )
+install( PROGRAMS org.kde.kdevelop_ps.desktop  DESTINATION  ${KDE_INSTALL_APPDIR} )
 install( FILES kdevelop.notifyrc DESTINATION ${KDE_INSTALL_KNOTIFY5RCDIR} )
 install( FILES kdevelop.xml kdevelopinternal.xml DESTINATION ${KDE_INSTALL_MIMEDIR} )
 update_xdg_mimetypes( ${KDE_INSTALL_MIMEDIR} )

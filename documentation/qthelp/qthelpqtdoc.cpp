@@ -23,12 +23,14 @@
 #include "qthelpqtdoc.h"
 #include "debug.h"
 
+#include <util/environmentgrouplist.h>
+
 #include <QDir>
 #include <QIcon>
 #include <QStandardPaths>
 
 #include <KLocalizedString>
-#include <KProcess>
+#include <QProcess>
 
 #include <algorithm>
 
@@ -58,18 +60,20 @@ void QtHelpQtDoc::registerDocumentations()
 {
     const QString qmake = qmakeCandidate();
     if (!qmake.isEmpty()) {
-        KProcess *p = new KProcess;
-        p->setOutputChannelMode(KProcess::MergedChannels);
-        p->setProgram(qmake, QStringList("-query") << "QT_INSTALL_DOCS");
+        QProcess *p = new QProcess;
+        KDevelop::restoreSystemEnvironment(p);
+        p->setProcessChannelMode(QProcess::MergedChannels);
+        p->setProgram(qmake);
+        p->setArguments(QStringList(QStringLiteral("-query QT_INSTALL_DOCS")));
         p->start();
-        connect(p, static_cast<void(KProcess::*)(int)>(&KProcess::finished), this, &QtHelpQtDoc::lookupDone);
+        connect(p, static_cast<void(QProcess::*)(int)>(&QProcess::finished), this, &QtHelpQtDoc::lookupDone);
     }
 }
 
 void QtHelpQtDoc::lookupDone(int code)
 {
     if(code==0) {
-        KProcess* p = qobject_cast<KProcess*>(sender());
+        QProcess* p = qobject_cast<QProcess*>(sender());
 
         m_path = QDir::fromNativeSeparators(QString::fromLatin1(p->readAllStandardOutput().trimmed()));
         qCDebug(QTHELP) << "Detected doc path:" << m_path;
