@@ -36,7 +36,6 @@ public:
                            const KDevelop::DocumentCursor& expansionLocation = KDevelop::DocumentCursor::invalid());
     ~MacroNavigationContext();
 
-    virtual QWidget* widget() const override;
     virtual QString html(bool shorten) override;
     virtual QString name() const override;
 
