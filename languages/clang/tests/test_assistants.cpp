@@ -258,17 +258,6 @@ void TestAssistants::testRenameAssistant_data()
         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,12,0,13), "u", "u"))
         << "int foo(int u)\n { u = 0; return u; }";
 
-    QTest::newRow("Letter-by-Letter")
-        << "int foo(int i)\n { i = 0; return i; }"
-        << "i"
-        << (QList<StateChange>()
-            << StateChange(Testbed::CppDoc, Range(0,12,0,13), "", "")
-            << StateChange(Testbed::CppDoc, Range(0,12,0,12), "a", "a")
-            << StateChange(Testbed::CppDoc, Range(0,13,0,13), "b", "ab")
-            << StateChange(Testbed::CppDoc, Range(0,14,0,14), "c", "abc")
-        )
-        << "int foo(int abc)\n { abc = 0; return abc; }";
-
     QTest::newRow("Paste Replace")
         << "int foo(int abg)\n { abg = 0; return abg; }"
         << "abg"
@@ -281,6 +270,15 @@ void TestAssistants::testRenameAssistant_data()
         << (QList<StateChange>() << StateChange(Testbed::CppDoc, Range(0,14,0,14), "cdef", "abcdefg"))
         << "int foo(int abcdefg)\n { abcdefg = 0; return abcdefg; }";
 
+    QTest::newRow("Letter-by-Letter Prepend")
+        << "int foo(int i)\n { i = 0; return i; }"
+        << "i"
+        << (QList<StateChange>()
+            << StateChange(Testbed::CppDoc, Range(0,12,0,12), "a", "ai")
+            << StateChange(Testbed::CppDoc, Range(0,13,0,13), "b", "abi")
+            << StateChange(Testbed::CppDoc, Range(0,14,0,14), "c", "abci")
+        )
+        << "int foo(int abc)\n { abc = 0; return abc; }";
     QTest::newRow("Letter-by-Letter Insert")
         << "int foo(int abg)\n { abg = 0; return abg; }"
         << "abg"
@@ -332,6 +330,7 @@ void TestAssistants::testRenameAssistant()
         if (stateChange.result.isEmpty()) {
             QVERIFY(!assistant || !assistant->actions().size());
         } else {
+            qWarning() << assistant.data() << stateChange.result;
             QVERIFY(assistant && assistant->actions().size());
             RenameAction *r = qobject_cast<RenameAction*>(assistant->actions().first().data());
             QCOMPARE(r->oldDeclarationName(), oldDeclarationName);
@@ -370,7 +369,7 @@ void TestAssistants::testRenameAssistantUndoRename()
     // now rename the variable back to its original identifier
     testbed.changeDocument(Testbed::CppDoc, Range(0,13,0,14), "");
     // there should be no assistant anymore
-    QVERIFY(!assistant);
+    QVERIFY(!assistant || assistant->actions().isEmpty());
 }
 
 const QString SHOULD_ASSIST = "SHOULD_ASSIST"; //An assistant will be visible
